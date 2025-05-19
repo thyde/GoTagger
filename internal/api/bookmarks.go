@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 // Handler to list all bookmarks
@@ -112,6 +113,6 @@ func joinAndTrim(parts []string, sep string) string {
 }
 
 // Minimal string helpers (replace with strings package in real code)
-func split(s, sep string) []string { return []string{} }
-func trim(s string) string         { return s }
-func join(parts []string, sep string) string { return "" }
+func split(s, sep string) []string           { return strings.Split(s, sep) }
+func trim(s string) string                   { return strings.TrimSpace(s) }
+func join(parts []string, sep string) string { return strings.Join(parts, sep) }

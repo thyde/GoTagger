@@ -1,0 +1,101 @@
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    max-width: 700px;
+    margin: 3em auto;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(60,64,67,0.15);
+    padding: 2.5em 2.5em 2em 2.5em;
+}
+h1 {
+    text-align: center;
+    color: #202124;
+    font-weight: 400;
+    font-size: 2.5em;
+    letter-spacing: -1px;
+    margin-bottom: 1.5em;
+}
+form#addForm {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7em;
+    margin-bottom: 1.5em;
+    justify-content: center;
+}
+form#addForm input, form#addForm button, form#addForm label {
+    font-size: 1em;
+    padding: 0.7em 1em;
+    border: 1px solid #dadce0;
+    border-radius: 24px;
+    outline: none;
+    background: #f8f9fa;
+    margin: 0 0.2em;
+    transition: box-shadow 0.2s;
+}
+form#addForm input:focus {
+    box-shadow: 0 1px 4px rgba(60,64,67,0.15);
+    border-color: #4285f4;
+}
+form#addForm button {
+    background: linear-gradient(90deg, #4285f4 0%, #34a853 100%);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+form#addForm button:hover {
+    background: linear-gradient(90deg, #357ae8 0%, #2c8c47 100%);
+}
+#search {
+    width: 100%;
+    padding: 0.8em 1.2em;
+    border-radius: 24px;
+    border: 1px solid #dadce0;
+    margin-bottom: 2em;
+    font-size: 1.1em;
+    background: #f8f9fa;
+    transition: box-shadow 0.2s;
+}
+#search:focus {
+    box-shadow: 0 1px 4px rgba(60,64,67,0.15);
+    border-color: #4285f4;
+}
+.bookmark {
+    border-bottom: 1px solid #ececec;
+    padding: 1.2em 0 1em 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+}
+.bookmark:last-child {
+    border-bottom: none;
+}
+.bookmark a {
+    color: #1a73e8;
+    font-size: 1.15em;
+    text-decoration: none;
+    font-weight: 500;
+}
+.bookmark a:hover {
+    text-decoration: underline;
+}
+.tags {
+    color: #5f6368;
+    font-size: 0.97em;
+    margin-top: 0.1em;
+}
+.favorite {
+    color: #fbbc04;
+    font-size: 1.2em;
+    margin-left: 0.3em;
+}
+@media (max-width: 600px) {
+    .container { padding: 1em; }
+    form#addForm input, form#addForm button { width: 100%; margin-bottom: 0.5em; }
+}

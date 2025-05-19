@@ -22,9 +22,29 @@ func main() {
 		log.Fatalf("failed to migrate database: %v", err)
 	}
 
-	err = db.SeedDummyData(database)
+	// Seed the database if empty
+	var count int
+	err = database.QueryRow("SELECT COUNT(*) FROM bookmarks").Scan(&count)
 	if err != nil {
-		log.Fatalf("failed to seed dummy data: %v", err)
+		log.Fatalf("failed to check bookmarks count: %v", err)
+	}
+	if count == 0 {
+		if err := db.SeedDummyData(database); err != nil {
+			log.Fatalf("failed to seed dummy data: %v", err)
+		}
+	}
+
+	// Remove duplicate bookmarks (same url), keeping the one with the lowest id
+	_, err = database.Exec(`
+	DELETE FROM bookmarks
+	WHERE id NOT IN (
+		SELECT MIN(id) FROM (
+			SELECT id FROM bookmarks GROUP BY url
+		)
+	);
+	`)
+	if err != nil {
+		log.Fatalf("failed to remove duplicate bookmarks: %v", err)
 	}
 
 	mux := http.NewServeMux()
