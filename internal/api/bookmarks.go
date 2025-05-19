@@ -1,0 +1,3 @@
+package api
+
+// ...handlers for bookmarks will go here...

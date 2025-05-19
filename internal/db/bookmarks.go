@@ -1,0 +1,3 @@
+package db
+
+// ...database logic for bookmarks will go here...

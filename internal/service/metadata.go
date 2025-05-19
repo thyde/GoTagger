@@ -1,0 +1,3 @@
+package service
+
+// ...metadata fetching logic will go here...
