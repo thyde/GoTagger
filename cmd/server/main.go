@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"GoTagger/internal/api"
 	"GoTagger/internal/db"
 )
 
@@ -26,10 +27,10 @@ func main() {
 		log.Fatalf("failed to seed dummy data: %v", err)
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Welcome to GoMark!")
-	})
+	mux := http.NewServeMux()
+	api.RegisterRoutes(mux, database)
+	mux.Handle("/", http.FileServer(http.Dir("./cmd/server/static")))
 
 	fmt.Println("Server listening on :8080")
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", mux)
 }

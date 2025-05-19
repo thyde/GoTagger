@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GoMark Bookmarks</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        .bookmark { border-bottom: 1px solid #ccc; padding: 1em 0; }
+        .tags { color: #888; font-size: 0.9em; }
+        .favorite { color: gold; }
+        #search { margin-bottom: 1em; }
+    </style>
+</head>
+<body>
+    <h1>GoMark Bookmarks</h1>
+    <form id="addForm">
+        <input type="url" id="url" placeholder="Bookmark URL" required>
+        <input type="text" id="title" placeholder="Title">
+        <input type="text" id="tags" placeholder="Tags (comma separated)">
+        <label><input type="checkbox" id="favorite"> Favorite</label>
+        <button type="submit">Add Bookmark</button>
+    </form>
+    <input type="text" id="search" placeholder="Search bookmarks...">
+    <div id="bookmarks"></div>
+    <script>
+    async function fetchBookmarks(query = "") {
+        let url = "/api/bookmarks";
+        if (query) url = `/api/bookmarks/search?q=${encodeURIComponent(query)}`;
+        const res = await fetch(url);
+        const bookmarks = await res.json();
+        const container = document.getElementById('bookmarks');
+        container.innerHTML = '';
+        bookmarks.forEach(b => {
+            container.innerHTML += `<div class="bookmark">
+                <a href="${b.url}" target="_blank">${b.title || b.url}</a>
+                ${b.favorite ? '<span class="favorite">★</span>' : ''}
+                <div class="tags">${(b.tags || []).join(', ')}</div>
+            </div>`;
+        });
+    }
+    document.getElementById('addForm').onsubmit = async e => {
+        e.preventDefault();
+        const data = {
+            url: document.getElementById('url').value,
+            title: document.getElementById('title').value,
+            tags: document.getElementById('tags').value.split(',').map(t => t.trim()),
+            favorite: document.getElementById('favorite').checked
+        };
+        await fetch('/api/bookmarks/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        e.target.reset();
+        fetchBookmarks();
+    };
+    document.getElementById('search').oninput = e => {
+        fetchBookmarks(e.target.value);
+    };
+    fetchBookmarks();
+    </script>
+</body>
+</html>
