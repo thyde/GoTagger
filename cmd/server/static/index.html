@@ -17,12 +17,44 @@
             <button type="submit">Add</button>
         </form>
         <input type="text" id="search" placeholder="Search bookmarks...">
+        <select id="sort" style="margin-bottom:1em;">
+            <option value="">Sort by Date</option>
+            <option value="title">Sort by Title</option>
+            <option value="favorite">Sort by Favorite</option>
+        </select>
+        <div id="tag-cloud"></div>
         <div id="bookmarks"></div>
+        <div id="pagination-controls"></div>
+        <div id="editModal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span id="closeEditModal" class="close">&times;</span>
+                <h2>Edit Bookmark</h2>
+                <form id="editForm">
+                    <input type="hidden" id="edit-id">
+                    <input type="url" id="edit-url" placeholder="Bookmark URL" required>
+                    <input type="text" id="edit-title" placeholder="Title">
+                    <input type="text" id="edit-tags" placeholder="Tags (comma separated)">
+                    <label style="display:flex;align-items:center;gap:0.3em;"><input type="checkbox" id="edit-favorite"> <span style="color:#fbbc04;">★ Favorite</span></label>
+                    <button type="submit">Save</button>
+                </form>
+            </div>
+        </div>
+        <div style="margin:1em 0;">
+            <button id="exportBtn">Export Bookmarks (JSON)</button>
+            <input type="file" id="importFile" style="display:none;">
+            <button id="importBtn">Import Bookmarks (JSON)</button>
+        </div>
     </div>
     <script>
-        async function fetchBookmarks(query = '') {
-            const res = await fetch(`/api/bookmarks?search=${encodeURIComponent(query)}`);
-            const bookmarks = await res.json();
+        async function fetchBookmarks(query = '', page = 1, sort = '') {
+            let url = `/api/bookmarks?search=${encodeURIComponent(query)}&page=${page}`;
+            if (sort) url += `&sort=${encodeURIComponent(sort)}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            const bookmarks = data.bookmarks || [];
+            const total = data.total || 0;
+            const perPage = data.per_page || 10;
+            const currentPage = data.page || 1;
             const container = document.getElementById('bookmarks');
             container.innerHTML = '';
             bookmarks.forEach(b => {
@@ -30,8 +62,67 @@
                     <a href="${b.url}" target="_blank">${b.title || b.url}</a>
                     ${b.favorite ? '<span class="favorite">★</span>' : ''}
                     <div class="tags">${(b.tags || []).join(', ')}</div>
+                    <button class="edit-btn" data-id="${b.id}">Edit</button>
+                    <button class="delete-btn" data-id="${b.id}">Delete</button>
                 </div>`;
             });
+            document.querySelectorAll('.edit-btn').forEach(btn => btn.onclick = openEditModal);
+            document.querySelectorAll('.delete-btn').forEach(btn => btn.onclick = deleteBookmark);
+            renderPagination(total, perPage, currentPage, query, sort);
+        }
+
+        function renderPagination(total, perPage, currentPage, query, sort) {
+            const controls = document.getElementById('pagination-controls');
+            controls.innerHTML = '';
+            const totalPages = Math.ceil(total / perPage);
+            if (totalPages <= 1) return;
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                btn.className = (i === currentPage) ? 'active' : '';
+                btn.onclick = () => fetchBookmarks(query, i, sort);
+                controls.appendChild(btn);
+            }
+        }
+
+        function openEditModal(e) {
+            const id = e.target.getAttribute('data-id');
+            fetch(`/api/bookmarks/search?q=`).then(res => res.json()).then(bookmarks => {
+                const b = bookmarks.find(b => b.id == id);
+                if (!b) return;
+                document.getElementById('edit-id').value = b.id;
+                document.getElementById('edit-url').value = b.url;
+                document.getElementById('edit-title').value = b.title;
+                document.getElementById('edit-tags').value = (b.tags || []).join(', ');
+                document.getElementById('edit-favorite').checked = b.favorite;
+                document.getElementById('editModal').style.display = 'block';
+            });
+        }
+        document.getElementById('closeEditModal').onclick = () => {
+            document.getElementById('editModal').style.display = 'none';
+        };
+        document.getElementById('editForm').onsubmit = async e => {
+            e.preventDefault();
+            const data = {
+                id: Number(document.getElementById('edit-id').value),
+                url: document.getElementById('edit-url').value,
+                title: document.getElementById('edit-title').value,
+                tags: document.getElementById('edit-tags').value.split(',').map(t => t.trim()),
+                favorite: document.getElementById('edit-favorite').checked
+            };
+            await fetch('/api/bookmarks/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            document.getElementById('editModal').style.display = 'none';
+            fetchBookmarks();
+        };
+        async function deleteBookmark(e) {
+            if (!confirm('Delete this bookmark?')) return;
+            const id = e.target.getAttribute('data-id');
+            await fetch(`/api/bookmarks/delete?id=${id}`);
+            fetchBookmarks();
         }
         document.getElementById('addForm').onsubmit = async e => {
             e.preventDefault();
@@ -50,8 +141,60 @@
             fetchBookmarks();
         };
         document.getElementById('search').oninput = e => {
-            fetchBookmarks(e.target.value);
+            fetchBookmarks(e.target.value, 1, getSortValue());
         };
+        document.getElementById('sort').onchange = () => {
+            fetchBookmarks(document.getElementById('search').value, 1, getSortValue());
+        };
+        function getSortValue() {
+            const sel = document.getElementById('sort');
+            return sel ? sel.value : '';
+        }
+        function getSearchValue() {
+            const input = document.getElementById('search');
+            return input ? input.value : '';
+        }
+        async function fetchTags() {
+            const res = await fetch('/api/tags');
+            const tagCounts = await res.json();
+            const tagCloud = document.getElementById('tag-cloud');
+            tagCloud.innerHTML = '';
+            Object.entries(tagCounts).forEach(([tag, count]) => {
+                const tagBtn = document.createElement('button');
+                tagBtn.textContent = `${tag} (${count})`;
+                tagBtn.className = 'tag-btn';
+                tagBtn.onclick = () => fetchBookmarks(tag);
+                tagCloud.appendChild(tagBtn);
+            });
+        }
+        document.getElementById('exportBtn').onclick = async () => {
+            const res = await fetch('/api/bookmarks/export');
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'bookmarks.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        };
+        document.getElementById('importBtn').onclick = () => {
+            document.getElementById('importFile').click();
+        };
+        document.getElementById('importFile').onchange = async e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const text = await file.text();
+            await fetch('/api/bookmarks/import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: text
+            });
+            fetchBookmarks();
+            fetchTags();
+        };
+        fetchTags();
         fetchBookmarks();
     </script>
 </body>

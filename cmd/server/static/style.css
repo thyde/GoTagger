@@ -95,6 +95,68 @@ form#addForm button:hover {
     font-size: 1.2em;
     margin-left: 0.3em;
 }
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.3);
+    display: flex; align-items: center; justify-content: center;
+}
+.modal-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2em;
+    min-width: 320px;
+    box-shadow: 0 4px 24px rgba(60,64,67,0.15);
+    position: relative;
+}
+.close {
+    position: absolute;
+    right: 1em;
+    top: 1em;
+    font-size: 1.5em;
+    color: #888;
+    cursor: pointer;
+}
+.edit-btn, .delete-btn {
+    margin-top: 0.5em;
+    margin-right: 0.5em;
+    border: none;
+    border-radius: 16px;
+    padding: 0.4em 1em;
+    font-size: 1em;
+    cursor: pointer;
+    background: #e8eaed;
+    color: #333;
+    transition: background 0.2s;
+}
+.edit-btn:hover {
+    background: #4285f4;
+    color: #fff;
+}
+.delete-btn:hover {
+    background: #ea4335;
+    color: #fff;
+}
+.tag-btn {
+    display: inline-block;
+    margin: 0.2em 0.4em 0.2em 0;
+    padding: 0.3em 1em;
+    border: none;
+    border-radius: 16px;
+    background: #e8eaed;
+    color: #333;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.tag-btn:hover {
+    background: #4285f4;
+    color: #fff;
+}
+#tag-cloud {
+    margin-bottom: 1em;
+}
 @media (max-width: 600px) {
     .container { padding: 1em; }
     form#addForm input, form#addForm button { width: 100%; margin-bottom: 0.5em; }

@@ -1,16 +1,19 @@
 # GoMark
 
-GoMark is a lightweight, web-based bookmark manager written in Go. It allows users to save, tag, search, and favorite bookmarks through a simple web interface and REST API, with persistent storage and optional metadata enrichment.
+GoMark is a modern, web-based bookmark manager written in Go. It allows users to save, tag, search, edit, and favorite bookmarks through a beautiful web interface and a REST API, with persistent storage and optional metadata enrichment.
 
 ## Features
 
 - Add, edit, delete, and list bookmarks
 - Tagging and keyword search
 - Favorite bookmarks for quick access
-- Background metadata fetching (e.g. page title)
+- Pagination and sorting
+- Tag cloud with filtering and tag usage counts
+- Import/export bookmarks (JSON)
+- Duplicate detection on add
+- Modern, responsive web UI (Google-like aesthetic)
 - Persistent storage with SQLite (default) or PostgreSQL (optional)
 - JSON-based REST API
-- Modern, responsive web UI (Google-like aesthetic)
 - Written with idiomatic, testable Go
 
 ## Getting Started
@@ -18,7 +21,7 @@ GoMark is a lightweight, web-based bookmark manager written in Go. It allows use
 ### Prerequisites
 
 - Go 1.21+
-- SQLite (default, installed via Homebrew on macOS: `brew install sqlite`)
+- SQLite (default, install via Homebrew on macOS: `brew install sqlite`)
 - (Optional) PostgreSQL for advanced setups
 
 ### Installation & Running
@@ -34,15 +37,22 @@ The server will start on [http://localhost:8080](http://localhost:8080).
 ### Usage
 
 - Visit [http://localhost:8080](http://localhost:8080) in your browser.
-- Use the web interface to add, search, and favorite bookmarks.
-- The database is automatically seeded to always include at least 5 bookmarks, including Google, Bing, Yahoo, and Amazon.
+- Use the web interface to add, edit, delete, search, and favorite bookmarks.
+- Filter bookmarks by tag using the tag cloud.
+- Import/export bookmarks as JSON.
+- The database is always seeded to include at least 5 bookmarks (Google, Bing, Yahoo, Amazon, and examples).
 - Bookmarks are deduplicated by URL on startup.
 
 ### API Endpoints
 
-- `GET /api/bookmarks` — List all bookmarks
+- `GET /api/bookmarks` — List bookmarks (supports `search`, `page`, `per_page`, `sort` query params)
 - `POST /api/bookmarks/add` — Add a new bookmark (JSON body)
-- `GET /api/bookmarks/search?q=term` — Search bookmarks by tag, title, or URL
+- `POST /api/bookmarks/update` — Update a bookmark (JSON body)
+- `GET /api/bookmarks/delete?id=...` — Delete a bookmark by ID
+- `GET /api/bookmarks/search?q=...` — Search bookmarks by tag, title, or URL
+- `GET /api/tags` — List all tags and their usage counts
+- `GET /api/bookmarks/export` — Export bookmarks as JSON
+- `POST /api/bookmarks/import` — Import bookmarks from JSON
 
 ### Testing
 
